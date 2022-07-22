@@ -16,7 +16,7 @@ var gd = new GD({
 var getLevel = async () => {
   var level = await gd.levels.get(10565740); // Bloodbath Level ID
   var levelData = await level.resolve();
-  var gmd2impl = new GMD2.GMD2Implementation(levelData, "Bloodbath.gmd2");
+  var gmd2impl = new GMD2.GMD2Implementation(levelData, "Bloodbath.gmd2", false);
   gmd2impl.EmbedSong(); // Embed song to the file if required.
   gmd2impl.GenerateFile();
 }
