@@ -6,7 +6,10 @@ var cpr = require("child_process");
  * GMD2 Tools
 */
 class GMDTools {
-    constructor() {}
+    constructor() {
+        // Error while downloading file from URL
+        this.downloadError = false;
+    }
     
     /**
      * Set URL
@@ -22,12 +25,18 @@ class GMDTools {
      * *See https://stackoverflow.com/questions/52195360/issues-with-synchronously-downloading-a-file-in-node*
      */
     URLFileDownload() {
+        this.downloadError = false;
         this.urlContents = cpr.execFileSync("curl", [
             "--silent", "-L", this.url
         ], {
             //128 MB
             maxBuffer: 128 * 1024 * 1024
         });
+        
+        if(this.urlContents.includes("404 Not Found")) {
+            console.log("[GMD2Impl] Music download error - Blocked Song.");
+            this.downloadError = true;
+        }
     }
 }
 
@@ -121,14 +130,19 @@ class GMD2Implementation {
         
             // Download Song
             gtools.URLFileDownload();
-            if(this.debugOutput) console.log("[GMD2Impl] Success! Song %d was downloaded.", this.levelData.song.id);
 
-            // Add to zip file
-            zipdata.addFile(`${this.levelData.song.id}.mp3`, gtools.urlContents);
+            if(!gtools.downloadError) {
+                // Add to zip file
+                zipdata.addFile(`${this.levelData.song.id}.mp3`, gtools.urlContents);
 
-            // Add sond metadata to level.meta
-            lmeta["song-file"] = `${this.levelData.song.id}.mp3`;
-            lmeta["song-is-custom"] = true;
+                // Add sond metadata to level.meta
+                lmeta["song-file"] = `${this.levelData.song.id}.mp3`;
+                lmeta["song-is-custom"] = true;
+
+                if(this.debugOutput && !gtools.downloadError) {
+                    console.log("[GMD2Impl] Success! Song %d was downloaded.", this.levelData.song.id);
+                }
+            }
         }
 
         // Add level.data and level.meta
