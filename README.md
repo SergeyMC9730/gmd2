@@ -1,6 +1,6 @@
 # GMD2 Implementation
 GMD2 File Format Implementation in Node JS <br>
-**Only writing is supported. Stay tuned!**
+**Read support is implemented!**
 
 Example:
 ```js
