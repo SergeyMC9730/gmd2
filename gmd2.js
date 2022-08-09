@@ -1,6 +1,8 @@
 var GD = require("gd.js");
 var admzip = require("adm-zip");
 var cpr = require("child_process");
+var fs = require("fs");
+var xml = require("xml2js");
 
 /**
  * GMD2 Tools
@@ -40,6 +42,24 @@ class GMDTools {
     }
 }
 
+class GMDSong {
+    constructor() {
+        this.id = 0;
+        this.isCustom = false;
+    }
+}
+
+class GMDLevel {
+    constructor() {
+        this.name = "";
+        this.id = 0;
+        this.description = "";
+        this.song = new GMDSong();
+        this.data = "";
+        this.levelDataSize = 0;
+    }
+}
+
 /**
  * GMD2 File Format Implementation
  * 
@@ -47,10 +67,11 @@ class GMDTools {
  */
 class GMD2Implementation {
     /**
-     * Gives basic information for GMD2 file
+     * **Gives basic information for GMD2 file**
      * @param {GD.Level} levelData Level Data from gd.js
      * @param {string} fileName File Name
      * @param {boolean} debugOutput Enable or disable debugging output
+     * 
     */
     constructor(levelData, fileName, debugOutput) {
         // Level Data from gd.js
@@ -67,7 +88,7 @@ class GMD2Implementation {
     }
 
     /**
-     * Embeds song to the resulting file
+     * **Embeds song to the resulting file**
      */
     EmbedSong() {
         if(this.levelData.song.isCustom) {
@@ -76,7 +97,56 @@ class GMD2Implementation {
     }
     
     /**
-     * Generates file
+     * **Reads file**
+     * @return GMDLevel class
+     */
+    ReadFile() {
+        var gdl = new GMDLevel();
+        var f = fs.readFileSync(this.fileName);
+        var zipdata = new admzip(f, {
+            readEntries: true,
+            noSort: true,
+        });
+
+        var lm;
+        var ld;
+
+        zipdata.getEntries().forEach((ze) => {
+            switch(ze.entryName) {
+                case "level.meta": {
+                    lm = JSON.parse(ze.getData().toString("utf8"));
+                    break;
+                }
+                case "level.data": {
+                    ld = ze.getData().toString("ascii");
+                    break;
+                }
+            }
+        });
+
+        // Parse level.meta
+        if(lm["song-is-custom"]) {
+            gdl.song.isCustom = true;
+            gdl.song.id = lm["song-file"].split(".mp3")[0];
+        }
+
+        // Parse level.data
+        xml.parseString(ld, (err, result) => {
+            if(err) return gdl;
+            gdl.name = result.d.s[0];
+            gdl.data = result.d.s[2];
+            var ldesc = Buffer.from(result.d.s[1], "base64");
+            gdl.description = ldesc.toString("ascii");
+            gdl.levelDataSize = gdl.data.length;
+        })
+        var lid = this.fileName.split("/").slice(-1)[0].split(".")[0].split("_")[1];
+        if(lid != "NaN") gdl.id = parseInt(lid);
+        
+        return gdl;
+    }
+
+    /**
+     * **Generates file**
      */
     GenerateFile() {
         // level.meta
