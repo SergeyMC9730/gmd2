@@ -175,7 +175,7 @@ class GMD2Implementation {
 
             // Song Information
             var knum = (this.levelData.song.isCustom) ? "k45" : "k8";
-            var song = `<k>${knum}</k><i>${this.levelData.song.id - (this.levelData.song.isCustom) ? 0 : 1}</i>`;
+            var song = `<k>${knum}</k><i>${this.levelData.song.id - !this.levelData.song.isCustom}</i>`;
             ldata = ldata.concat(song);
 
             ldata = ldata.concat("<k>k13</k><t/><k>k21</k><i>2</i><k>k50</k><i>35</i>");
