@@ -57,6 +57,7 @@ class GMDLevel {
         this.song = new GMDSong();
         this.data = "";
         this.levelDataSize = 0;
+        this.rawLevelDataString = "";
     }
 }
 
@@ -121,23 +122,26 @@ class GMD2Implementation {
                     ld = ze.getData().toString("ascii");
                     break;
                 }
+                default: {
+                    console.log("[GMD2Impl WARN] Found unknown file %s! Skipping.", ze.entryName);
+                    break;
+                }
             }
         });
 
-        // Parse level.meta
-        if(lm["song-is-custom"]) {
-            gdl.song.isCustom = true;
-            gdl.song.id = lm["song-file"].split(".mp3")[0];
-        }
+        gdl.rawLevelDataString = ld;
 
         // Parse level.data
         xml.parseString(ld, (err, result) => {
             if(err) return gdl;
+            fs.writeFileSync("test.json", JSON.stringify(result));
             gdl.name = result.d.s[0];
             gdl.data = result.d.s[2];
             var ldesc = Buffer.from(result.d.s[1], "base64");
             gdl.description = ldesc.toString("ascii");
             gdl.levelDataSize = gdl.data.length;
+            gdl.song.isCustom = (result.d.k[4] == "k45") ? true : false;
+            gdl.song.id = parseInt(result.d.i[1]);
         })
         var lid = this.fileName.split("/").slice(-1)[0].split(".")[0].split("_")[1];
         if(lid != "NaN") gdl.id = parseInt(lid);
