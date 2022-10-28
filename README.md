@@ -1,6 +1,5 @@
 # GMD2 Implementation
-GMD2 File Format Implementation in Node JS <br>
-**Read support is implemented!**
+GMD2 file format Read/Write implementation in Node JS <br>
 
 Example:
 ```js
