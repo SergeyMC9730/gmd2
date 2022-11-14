@@ -63,8 +63,6 @@ class GMDLevel {
 
 /**
  * GMD2 File Format Implementation
- * 
- * **At this time only writing is supported. GMD2 data reading is planned.**
  */
 class GMD2Implementation {
     /**
@@ -134,7 +132,6 @@ class GMD2Implementation {
         // Parse level.data
         xml.parseString(ld, (err, result) => {
             if(err) return gdl;
-            fs.writeFileSync("test.json", JSON.stringify(result));
             gdl.name = result.d.s[0];
             gdl.data = result.d.s[2];
             var ldesc = Buffer.from(result.d.s[1], "base64");
